@@ -69,6 +69,8 @@ Make web pages with kind of minimalistic design but they should look modern and 
 
 This will display static information about climbing club (exact text content will be added later).
 Here will be basic information about club (summary of what club does, number of members, history, ...).
+There will be picture of the week on the right side of text.
+Picture of the week will have short description under the picture (i.e. what is on the picture) and author.
 
 #### board (read only)    
 
@@ -85,7 +87,7 @@ Each news in board will contain:
 - text of the news
 - Potentially picture or pictures
 
-It should be easy to create new board after login on PC and on mobile phone.
+It should be easy to create new news on the board after login on PC and on mobile phone.
 
 #### articles (read only)    
 
@@ -108,21 +110,43 @@ It should be easy to create new article after login on PC and on mobile phone.
 This will display official planned club activities in near future and history of official activity. This can be 
 methodic workshops, organized climbing trips, club meetups, ...
 
+Activities will contain:
+- name
+- start date
+- end date
+- location
+- description
+
 #### contacts (read only)   
+
+Contacts will display public contacts for some team members.
 
 #### login (with form for login)
 
-t.b.d. ...
+Login page will have form for login (user name + password).
+Each member is able to change it's own user data and change it's own password.
+First password will be generated when user is created by super user.
+Than during first login user is asked to change its password for something unique (secure password is required).
+When user forget its password there is mechanism for reseting user password the way that user just enter
+his email and temporary link for new password setup is sent to user email.
+Django user module will be used.
+User will have at minimum these parameters:
+- user name (for login)
+- email (can be also used for login)
+- password (is handled according best security rules practicies)
+- telephone (not required)
+- roles (roles in the club: (předseda, tajemník, pokladník, člen, instruktor). User can have multiple roles)
 
 So this web-page requires user management.
 There will be users with admin rights who can edit anything.
 There will be users with rights to see pages, add or edit new artical, add or edit News.
 
 
+### Style
+
+t.b.d.
 
 Design of the page will be in minimalistic style in shades of dark (black ... grey) and yellow color.
-
-Text for main page and for individual news and articals will be added later via Admin interface.
 
 There will be also default super user 
 with name: brouk
