@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Články – HOUSKi{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Články</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'articles:create' %}" class="btn btn-primary">+ Přidat článek</a>
+    {% endif %}
+</div>
+
+<div class="category-filters">
+    <a href="{% url 'articles:list' %}" class="chip {% if not active_category %}chip-active{% endif %}">Vše</a>
+    {% for category in categories %}
+        <a href="?category={{ category.slug }}" class="chip {% if active_category == category.slug %}chip-active{% endif %}">{{ category.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="card-grid">
+    {% for article in page_obj %}
+    <article class="card article-card">
+        {% with article.images.first as cover %}
+            {% if cover %}<img src="{{ cover.image.url }}" alt="" class="article-cover">{% endif %}
+        {% endwith %}
+        <h2><a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a></h2>
+        <p class="post-meta">
+            <span class="post-author">{{ article.author.username }}</span>
+            <span class="post-date">{{ article.created_at|date:"j. n. Y" }}</span>
+        </p>
+        <div class="article-categories">
+            {% for category in article.categories.all %}
+                <span class="chip chip-sm">{{ category.name }}</span>
+            {% endfor %}
+        </div>
+    </article>
+    {% empty %}
+    <p>Zatím žádné články.</p>
+    {% endfor %}
+</div>
+
+{% include 'partials/pagination.html' with page_obj=page_obj %}
+{% endblock %}

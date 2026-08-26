@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HOUSKi – Horolezecký oddíl{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="{% url 'home:index' %}" class="logo-link">
+                <img src="{% static 'img/logo.png' %}" alt="HOUSKi logo" class="logo">
+                <span class="logo-text">HOUSKi</span>
+            </a>
+            <button class="nav-toggle" aria-label="Otevřít menu">☰</button>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{% url 'home:index' %}" {% if request.resolver_match.namespace == 'home' %}class="active"{% endif %}>Domů</a></li>
+                    <li><a href="{% url 'board:list' %}" {% if request.resolver_match.namespace == 'board' %}class="active"{% endif %}>Nástěnka</a></li>
+                    <li><a href="{% url 'articles:list' %}" {% if request.resolver_match.namespace == 'articles' %}class="active"{% endif %}>Články</a></li>
+                    <li><a href="{% url 'activities:list' %}" {% if request.resolver_match.namespace == 'activities' %}class="active"{% endif %}>Plánované aktivity</a></li>
+                    <li><a href="{% url 'contacts:index' %}" {% if request.resolver_match.namespace == 'contacts' %}class="active"{% endif %}>Kontakty</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'users:profile' %}">Profil</a></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-logout-btn">Odhlásit</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Přihlásit</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message message--{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>© {% now "Y" %} HOUSKi – Horolezecký oddíl Plzeň</p>
+            <p>Kontakt: <a href="{% url 'contacts:index' %}">Kontakty</a></p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

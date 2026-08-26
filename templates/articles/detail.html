@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.headline }} – HOUSKi{% endblock %}
+{% block content %}
+<article class="card article-detail">
+    <h1>{{ article.headline }}</h1>
+    <p class="post-meta">
+        <span class="post-author">{{ article.author.username }}</span>
+        <span class="post-date">{{ article.created_at|date:"j. n. Y H:i" }}</span>
+    </p>
+    <div class="article-categories">
+        {% for category in article.categories.all %}
+            <span class="chip chip-sm">{{ category.name }}</span>
+        {% endfor %}
+    </div>
+    <div class="post-text">{{ article.text|safe }}</div>
+    {% if article.images.exists %}
+    <div class="post-images">
+        {% for img in article.images.all %}
+            <figure>
+                <img src="{{ img.image.url }}" alt="{{ img.caption }}" class="article-image">
+                {% if img.caption %}<figcaption>{{ img.caption }}</figcaption>{% endif %}
+            </figure>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if user.is_authenticated and article.author == user or user.is_staff %}
+    <div class="post-actions">
+        <a href="{% url 'articles:edit' article.pk %}" class="btn btn-secondary btn-sm">Upravit</a>
+        <a href="{% url 'articles:delete' article.pk %}" class="btn btn-danger btn-sm">Smazat</a>
+    </div>
+    {% endif %}
+</article>
+{% endblock %}

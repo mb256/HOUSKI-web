@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} – HOUSKi{% endblock %}
+{% block extra_css %}{{ form.media.css }}{% endblock %}
+{% block content %}
+<h1>{{ action }}</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% for field in form %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+            <p class="form-errors">{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <h3>Obrázky (max. 10)</h3>
+    {% for image_form in formset %}
+        <div class="form-group">
+            {{ image_form.image }}
+            {{ image_form.caption }}
+            {% if image_form.instance.pk %}{{ image_form.DELETE }} <label>Smazat obrázek</label>{% endif %}
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Uložit</button>
+    <a href="{% url 'articles:list' %}" class="btn btn-secondary">Zrušit</a>
+</form>
+{% endblock %}
+{% block extra_js %}{{ form.media.js }}{% endblock %}

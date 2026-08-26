@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Plánované aktivity – HOUSKi{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Plánované aktivity</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'activities:create' %}" class="btn btn-primary">+ Přidat aktivitu</a>
+    {% endif %}
+</div>
+
+<h2>Nadcházející</h2>
+<div class="card-grid">
+    {% for activity in upcoming %}
+    <article class="card activity-card">
+        <h3>{{ activity.name }}</h3>
+        <p class="activity-dates">{{ activity.start_date|date:"j. n. Y" }}{% if activity.end_date %} – {{ activity.end_date|date:"j. n. Y" }}{% endif %}</p>
+        <p class="activity-location">📍 {{ activity.location }}</p>
+        <div class="post-text">{{ activity.description|safe }}</div>
+        {% if user.is_authenticated and activity.author == user or user.is_staff %}
+        <div class="post-actions">
+            <a href="{% url 'activities:edit' activity.pk %}" class="btn btn-secondary btn-sm">Upravit</a>
+            <a href="{% url 'activities:delete' activity.pk %}" class="btn btn-danger btn-sm">Smazat</a>
+        </div>
+        {% endif %}
+    </article>
+    {% empty %}
+    <p>Žádné nadcházející aktivity.</p>
+    {% endfor %}
+</div>
+
+<h2>Minulé</h2>
+<div class="card-grid">
+    {% for activity in past %}
+    <article class="card activity-card activity-card--past">
+        <h3>{{ activity.name }}</h3>
+        <p class="activity-dates">{{ activity.start_date|date:"j. n. Y" }}{% if activity.end_date %} – {{ activity.end_date|date:"j. n. Y" }}{% endif %}</p>
+        <p class="activity-location">📍 {{ activity.location }}</p>
+        <div class="post-text">{{ activity.description|safe }}</div>
+        {% if user.is_authenticated and activity.author == user or user.is_staff %}
+        <div class="post-actions">
+            <a href="{% url 'activities:edit' activity.pk %}" class="btn btn-secondary btn-sm">Upravit</a>
+            <a href="{% url 'activities:delete' activity.pk %}" class="btn btn-danger btn-sm">Smazat</a>
+        </div>
+        {% endif %}
+    </article>
+    {% empty %}
+    <p>Žádné minulé aktivity.</p>
+    {% endfor %}
+</div>
+{% endblock %}

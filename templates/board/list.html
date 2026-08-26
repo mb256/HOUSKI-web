@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Nástěnka – HOUSKi{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Nástěnka</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'board:create' %}" class="btn btn-primary">+ Přidat příspěvek</a>
+    {% endif %}
+</div>
+
+{% for post in page_obj %}
+<article class="card board-post">
+    <div class="post-meta">
+        <span class="post-author">{{ post.author.username }}</span>
+        <span class="post-date">{{ post.created_at|date:"j. n. Y H:i" }}</span>
+    </div>
+    {% if post.headline %}<h2 class="post-headline">{{ post.headline }}</h2>{% endif %}
+    <div class="post-text">{{ post.text|safe }}</div>
+    {% if post.images.exists %}
+    <div class="post-images">
+        {% for img in post.images.all %}
+            <img src="{{ img.image.url }}" alt="" class="post-image-thumb">
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if user.is_authenticated and post.author == user or user.is_staff %}
+    <div class="post-actions">
+        <a href="{% url 'board:edit' post.pk %}" class="btn btn-secondary btn-sm">Upravit</a>
+        <a href="{% url 'board:delete' post.pk %}" class="btn btn-danger btn-sm">Smazat</a>
+    </div>
+    {% endif %}
+</article>
+{% empty %}
+<p>Zatím žádné příspěvky.</p>
+{% endfor %}
+
+{% include 'partials/pagination.html' with page_obj=page_obj %}
+{% endblock %}
