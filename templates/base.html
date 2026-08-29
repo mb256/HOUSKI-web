@@ -15,6 +15,9 @@
                 <img src="{% static 'img/logo.png' %}" alt="HOUSKi logo" class="logo">
                 <span class="logo-text">HOUSKi</span>
             </a>
+            {% if user.is_authenticated %}
+                <span class="header-username">{{ user.username }}</span>
+            {% endif %}
             <button class="nav-toggle" aria-label="Otevřít menu">☰</button>
             <nav class="main-nav">
                 <ul>

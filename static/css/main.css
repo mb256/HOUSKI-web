@@ -80,6 +80,12 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 }
 .main-nav a.active { color: var(--accent-yellow); }
 
+.header-username {
+    color: var(--accent-yellow);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
 .nav-logout-btn {
     background: none;
     border: none;
