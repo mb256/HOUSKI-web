@@ -66,63 +66,98 @@ Backend code/comments are in English; all user-facing text is in Czech.
 
 ## Deployment to PythonAnywhere
 
-1. **Export dependencies** (run locally before pushing, or regenerate on PA):
-   ```powershell
-   poetry export -f requirements.txt --output requirements.txt --without-hashes
-   ```
+These steps use **Poetry** directly on PythonAnywhere (no `requirements.txt` export
+needed). Free accounts get one web app, a Bash console, and PyPI/GitHub access, which is
+all this requires.
 
-2. **On PythonAnywhere**, clone the repo and create a virtualenv:
+### One-time setup
+
+1. **Open a Bash console** (Dashboard → Consoles → Bash).
+
+2. **Clone the repo:**
    ```bash
-   git clone https://github.com/yourrepo/houski-web.git
-   python3.12 -m venv ~/.virtualenvs/houski
-   source ~/.virtualenvs/houski/bin/activate
-   pip install -r requirements.txt
+   git clone https://github.com/mb256/HOUSKI-web.git
+   cd HOUSKI-web
    ```
 
-3. **Set environment variables** (PA dashboard → Web → environment variables, or a `.env`
-   file next to `manage.py`):
+3. **Create a virtualenv** matching the Python version you'll pick on the Web tab
+   (3.12 if available on your account; otherwise use the closest 3.x offered):
+   ```bash
+   mkvirtualenv houski --python=/usr/bin/python3.12
+   ```
+   This activates the venv automatically and creates it at `~/.virtualenvs/houski`.
+
+4. **Install Poetry into that same virtualenv**, and tell it not to create a second,
+   separate virtualenv of its own:
+   ```bash
+   pip install poetry
+   poetry config virtualenvs.create false --local
+   ```
+
+5. **Install dependencies:**
+   ```bash
+   poetry install --no-interaction --without dev
+   ```
+
+6. **Create `.env`** in the project root (`~/HOUSKI-web/.env`):
    ```
    SECRET_KEY=your-production-secret-key
    DJANGO_SETTINGS_MODULE=config.settings.prod
    ALLOWED_HOSTS=yourname.pythonanywhere.com
    ```
 
-4. **Configure the WSGI file** (PA dashboard → Web → WSGI configuration file):
+7. **Create the web app**: Dashboard → Web → Add a new web app → **Manual configuration**
+   → pick the same Python version as step 3.
+
+8. **Set the virtualenv path** (Web tab → Virtualenv section): enter `houski` (or the
+   full path `/home/yourname/.virtualenvs/houski`).
+
+9. **Edit the WSGI configuration file** (Web tab → WSGI configuration file link) so it
+   reads:
    ```python
    import os, sys
-   path = '/home/yourname/houski-web'
+   path = '/home/yourname/HOUSKI-web'
    if path not in sys.path:
        sys.path.insert(0, path)
-   os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings.prod'
+   os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
    from django.core.wsgi import get_wsgi_application
    application = get_wsgi_application()
    ```
+   Replace `yourname` with your PythonAnywhere username.
 
-5. **Static/media file mappings** (PA dashboard → Web → Static files):
-   ```
-   URL: /static/    →  Directory: /home/yourname/houski-web/staticfiles
-   URL: /media/     →  Directory: /home/yourname/houski-web/media
-   ```
+10. **Static/media file mappings** (Web tab → Static files):
+    ```
+    URL: /static/    →  Directory: /home/yourname/HOUSKI-web/staticfiles
+    URL: /media/     →  Directory: /home/yourname/HOUSKI-web/media
+    ```
 
-6. **Run database setup:**
-   ```bash
-   python manage.py migrate
-   python manage.py collectstatic --noinput
-   python manage.py create_default_superuser
-   python manage.py seed_categories
-   ```
+11. **Run the setup/update script** (see below) to migrate the DB, collect static files,
+    and seed initial data:
+    ```bash
+    cd ~/HOUSKI-web
+    bash scripts/pa_update.sh
+    ```
 
-7. **Reload the web app** via the PA dashboard → Web → Reload button.
+12. **Reload the web app** via the Web tab → Reload button, then visit
+    `https://yourname.pythonanywhere.com/`.
+
+> ⚠️ Change the `brouk` password after first login — it's a known default credential.
 
 ### Update & redeploy workflow
 
+After pushing new commits to GitHub, from a PythonAnywhere Bash console:
+
 ```bash
-cd ~/houski-web
-git pull origin main
-source ~/.virtualenvs/houski/bin/activate
-pip install -r requirements.txt     # only if dependencies changed
-python manage.py migrate            # only if migrations changed
-python manage.py collectstatic --noinput
-# Then reload via PA dashboard, or:
-# touch /var/www/yourname_pythonanywhere_com_wsgi.py
+cd ~/HOUSKI-web
+bash scripts/pa_update.sh
 ```
+
+[`scripts/pa_update.sh`](scripts/pa_update.sh) pulls the latest `main`, activates the
+`houski` virtualenv, runs `poetry install` to sync dependencies, applies migrations,
+collects static files, and re-runs the idempotent `create_default_superuser` /
+`seed_categories` commands. It prints a reminder to reload the web app afterwards
+(Web tab → Reload), or set `WSGI_FILE=/var/www/yourname_pythonanywhere_com_wsgi.py`
+before running it to have the script trigger the reload itself.
+
+If your virtualenv is named something other than `houski`, pass it via
+`VENV_NAME=your-venv-name bash scripts/pa_update.sh`.
