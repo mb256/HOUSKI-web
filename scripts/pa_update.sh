@@ -33,6 +33,13 @@ source "$HOME/.virtualenvs/$VENV_NAME/bin/activate"
 # instead of creating its own.
 export POETRY_VIRTUALENVS_CREATE=false
 
+# manage.py's os.environ.setdefault() only takes effect if this isn't already
+# set, and python-decouple's config() (used to read .env) does NOT export
+# DJANGO_SETTINGS_MODULE into os.environ - so it must be set explicitly here,
+# otherwise manage.py silently falls back to config.settings.dev, which
+# requires the dev-only debug_toolbar package.
+export DJANGO_SETTINGS_MODULE=config.settings.prod
+
 echo "==> Installing/updating dependencies with Poetry"
 poetry install --no-interaction --without dev
 

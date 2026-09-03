@@ -105,6 +105,17 @@ all this requires.
    DJANGO_SETTINGS_MODULE=config.settings.prod
    ALLOWED_HOSTS=yourname.pythonanywhere.com
    ```
+   > ⚠️ `DJANGO_SETTINGS_MODULE` in `.env` is only read by `python-decouple`'s `config()`
+   > calls elsewhere in the settings — it is **not** exported as a real environment
+   > variable, so `manage.py` (and the WSGI file) never see it from `.env` alone.
+   > `scripts/pa_update.sh` exports it explicitly before running `manage.py`. If you ever
+   > run `python manage.py ...` by hand in a console, export it first:
+   > ```bash
+   > export DJANGO_SETTINGS_MODULE=config.settings.prod
+   > ```
+   > Otherwise `manage.py` silently falls back to `config.settings.dev`, which requires
+   > the dev-only `debug_toolbar` package and will fail with `ModuleNotFoundError` since
+   > it isn't installed in production (`poetry install --without dev`).
 
 7. **Create the web app**: Dashboard → Web → Add a new web app → **Manual configuration**
    → pick the same Python version as step 3.
