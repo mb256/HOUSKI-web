@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}HOUSKi – Horolezecký oddíl Plzeň{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    <div class="home-text">
+        <h1>HOUSKi – Horolezecký oddíl Plzeň</h1>
+        <p class="home-subtitle">Lezeme, horolezíme, lyžujeme a prostě žijeme v horách od roku ...</p>
+
+        <h2>O nás</h2>
+        <p>HOUSKi je místní horolezecký oddíl se sídlem v Plzni s bohatou historií.
+           Sdružujeme přátele se společnými aktivitami jako lezení, horolezectví,
+           expedice, bouldering, skialpinismus, běžecké lyžování a další outdoorové aktivity.</p>
+
+        <h2>Co děláme</h2>
+        <ul class="home-list">
+            <li>🧗 Skalní lezení a bouldering</li>
+            <li>⛰️ Horolezectví a expedice</li>
+            <li>⛷️ Skialpinismus a běžky</li>
+            <li>🚴 Cyklistické výlety</li>
+            <li>🏕️ Trekking a outdoor aktivity</li>
+        </ul>
+    </div>
+
+    {% if picture %}
+    <aside class="home-picture">
+        <div class="card">
+            <img src="{{ picture.image.url }}" alt="{{ picture.description }}" class="picture-of-week-img">
+            <p class="picture-caption">{{ picture.description }}</p>
+            <p class="picture-author">Foto: {{ picture.author }}</p>
+        </div>
+    </aside>
+    {% endif %}
+</div>
+{% endblock %}

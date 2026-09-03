@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Smazat článek – HOUSKi{% endblock %}
+{% block content %}
+<h1>Smazat článek</h1>
+<p>Opravdu chcete smazat článek "{{ article }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Smazat</button>
+    <a href="{% url 'articles:detail' article.pk %}" class="btn btn-secondary">Zrušit</a>
+</form>
+{% endblock %}
