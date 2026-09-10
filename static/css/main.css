@@ -272,7 +272,7 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 .post-meta { display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
 .post-author { color: var(--accent-yellow); }
 .post-headline { font-size: 1.1rem; margin-bottom: 0.5rem; }
-.post-text { color: var(--text-secondary); }
+.post-text, .post-text * { color: var(--text-secondary) !important; font-family: var(--font-sans) !important; }
 .post-text p { margin-bottom: 0.5rem; }
 .post-images { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .post-image-thumb { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius); }
