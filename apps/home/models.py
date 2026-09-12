@@ -1,21 +1,15 @@
 from django.db import models
 from django.conf import settings
-from PIL import Image
+from PIL import Image, ImageOps
 import os
 
 
 def compress_image(image_path, max_size_kb=400, max_width=1600):
     """Compress image to fit within max_size_kb and max_width."""
     img = Image.open(image_path)
-    # Preserve EXIF orientation
-    if hasattr(img, '_getexif'):
-        exif = img._getexif()
-        if exif:
-            from PIL.ExifTags import TAGS
-            for tag, value in exif.items():
-                if TAGS.get(tag) == 'Orientation':
-                    # handle rotation if needed
-                    pass
+    # Bake EXIF orientation into pixels (phones store portrait photos as
+    # landscape pixels + a rotation tag; JPEG re-save below drops the tag).
+    img = ImageOps.exif_transpose(img)
 
     # Resize if too wide
     if img.width > max_width:
