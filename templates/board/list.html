@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Nástěnka – HOUSKi{% endblock %}
 {% block content %}
 <div class="page-header">
@@ -19,7 +20,9 @@
     {% if post.images.exists %}
     <div class="post-images">
         {% for img in post.images.all %}
-            <img src="{{ img.image.url }}" alt="" class="post-image-thumb">
+            <button type="button" class="post-image-btn" data-group="post-{{ post.pk }}" data-full="{{ img.image.url }}">
+                <img src="{{ img.image.url }}" alt="" class="post-image-thumb">
+            </button>
         {% endfor %}
     </div>
     {% endif %}
@@ -35,4 +38,14 @@
 {% endfor %}
 
 {% include 'partials/pagination.html' with page_obj=page_obj %}
+
+<div class="lightbox-overlay" id="board-lightbox" hidden>
+    <button type="button" class="lightbox-close" aria-label="Zavřít">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" aria-label="Předchozí">&lsaquo;</button>
+    <img class="lightbox-img" src="" alt="">
+    <button type="button" class="lightbox-nav lightbox-next" aria-label="Další">&rsaquo;</button>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/board-lightbox.js' %}"></script>
 {% endblock %}
