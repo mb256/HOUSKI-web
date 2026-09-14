@@ -5,10 +5,12 @@ from django.contrib import messages
 from .models import BoardPost, BoardImage
 from .forms import BoardPostForm, BoardImageFormSet
 
+BOARD_PAGE_SIZE = 20
+
 
 def board_list(request):
     posts = BoardPost.objects.select_related('author').prefetch_related('images')
-    paginator = Paginator(posts, 25)
+    paginator = Paginator(posts, BOARD_PAGE_SIZE)
     page = paginator.get_page(request.GET.get('page'))
     return render(request, 'board/list.html', {'page_obj': page})
 

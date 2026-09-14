@@ -1,4 +1,3 @@
-{% if page_obj.has_other_pages %}
 <nav class="pagination" aria-label="Stránkování">
     {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}" aria-label="Předchozí">‹</a>
@@ -6,17 +5,19 @@
         <span class="disabled">‹</span>
     {% endif %}
 
-    {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-            <span class="current">{{ num }}</span>
-        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}">{{ num }}</a>
-        {% elif num == 1 or num == page_obj.paginator.num_pages %}
-            <a href="?page={{ num }}">{{ num }}</a>
-        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
-            <span class="disabled">…</span>
-        {% endif %}
-    {% endfor %}
+    {% if page_obj.paginator.num_pages > 1 %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                <span class="disabled">…</span>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 
     {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}" aria-label="Další">›</a>
@@ -24,4 +25,3 @@
         <span class="disabled">›</span>
     {% endif %}
 </nav>
-{% endif %}

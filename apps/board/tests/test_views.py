@@ -62,8 +62,30 @@ def test_author_can_delete_own_post(client, author):
 
 
 @pytest.mark.django_db
-def test_board_list_paginates_at_25(client, author):
-    for i in range(30):
+def test_board_list_paginates_at_20(client, author):
+    for i in range(25):
         BoardPost.objects.create(author=author, headline=f'Post {i}', text='text')
     response = client.get(reverse('board:list'))
-    assert len(response.context['page_obj']) == 25
+    assert len(response.context['page_obj']) == 20
+
+
+@pytest.mark.django_db
+def test_board_list_pagination_inactive_when_20_or_fewer(client, author):
+    for i in range(20):
+        BoardPost.objects.create(author=author, headline=f'Post {i}', text='text')
+    response = client.get(reverse('board:list'))
+    content = response.content.decode()
+    assert '<span class="disabled">‹</span>' in content
+    assert '<span class="disabled">›</span>' in content
+    assert '?page=' not in content
+
+
+@pytest.mark.django_db
+def test_board_list_pagination_shows_single_link_at_21(client, author):
+    for i in range(21):
+        BoardPost.objects.create(author=author, headline=f'Post {i}', text='text')
+    response = client.get(reverse('board:list'))
+    content = response.content.decode()
+    assert '<span class="current">1</span>' in content
+    assert '?page=2' in content
+    assert '?page=3' not in content
