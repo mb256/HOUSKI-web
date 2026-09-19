@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}HOUSKi – Horolezecký oddíl Plzeň{% endblock %}
 
@@ -26,11 +27,21 @@
     {% if picture %}
     <aside class="home-picture">
         <div class="card">
-            <img src="{{ picture.image.url }}" alt="{{ picture.description }}" class="picture-of-week-img">
+            <button type="button" class="picture-of-week-btn" data-full="{{ picture.image.url }}">
+                <img src="{{ picture.thumb_url }}" alt="{{ picture.description }}" class="picture-of-week-img">
+            </button>
             <p class="picture-caption">{{ picture.description }}</p>
             <p class="picture-author">Foto: {{ picture.author }}</p>
         </div>
     </aside>
     {% endif %}
 </div>
+
+<div class="lightbox-overlay" id="picture-of-week-lightbox" hidden>
+    <button type="button" class="lightbox-close" aria-label="Zavřít">&times;</button>
+    <img class="lightbox-img" src="" alt="">
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/home-lightbox.js' %}"></script>
 {% endblock %}

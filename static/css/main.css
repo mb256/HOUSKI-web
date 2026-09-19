@@ -277,6 +277,7 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 .post-images { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .post-image-thumb { width: 120px; height: 90px; object-fit: contain; background: var(--bg-card); border-radius: var(--radius); }
 .post-image-btn { padding: 0; border: none; background: none; cursor: pointer; line-height: 0; }
+.picture-of-week-btn { padding: 0; border: none; background: none; cursor: pointer; line-height: 0; display: block; width: 100%; }
 .post-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
 
 /* ===== Lightbox ===== */

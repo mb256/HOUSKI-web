@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django_summernote.fields import SummernoteTextField
-from apps.home.models import compress_image   # reuse helper
+from apps.home.models import compress_image, make_thumbnail   # reuse helper
 
 
 class BoardPost(models.Model):
@@ -24,10 +24,15 @@ class BoardPost(models.Model):
 class BoardImage(models.Model):
     post = models.ForeignKey(BoardPost, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='board/')
+    thumbnail = models.ImageField(upload_to='board/', null=True, blank=True, editable=False)
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
+
+    @property
+    def thumb_url(self):
+        return self.thumbnail.url if self.thumbnail else self.image.url
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -36,3 +41,6 @@ class BoardImage(models.Model):
             if new_name:
                 BoardImage.objects.filter(pk=self.pk).update(image=new_name)
                 self.image.name = new_name
+            thumb_name = make_thumbnail(self.image)
+            BoardImage.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
+            self.thumbnail.name = thumb_name

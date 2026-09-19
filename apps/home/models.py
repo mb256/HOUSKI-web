@@ -46,8 +46,41 @@ def compress_image(image_field, max_size_kb=400, max_width=1600):
     return new_name
 
 
+def make_thumbnail(image_field, max_size_kb=200, max_width=400):
+    """Create/refresh a small JPEG thumbnail next to image_field's file.
+
+    Uses a deterministic '<name>_thumb.jpg' path (derived from the field's
+    current, already-compressed filename) so repeated saves overwrite the
+    same thumbnail instead of piling up orphaned files. Returns the new
+    thumbnail name (relative to storage root).
+    """
+    img = Image.open(image_field.path)
+    img = ImageOps.exif_transpose(img)
+
+    if img.width > max_width:
+        ratio = max_width / img.width
+        img = img.resize((max_width, int(img.height * ratio)), Image.LANCZOS)
+
+    if img.mode in ('RGBA', 'P'):
+        img = img.convert('RGB')
+
+    root, _ext = os.path.splitext(image_field.name)
+    thumb_name = f'{root}_thumb.jpg'
+    thumb_path = image_field.storage.path(thumb_name)
+
+    quality = 80
+    while quality > 30:
+        img.save(thumb_path, 'JPEG', quality=quality, optimize=True)
+        if os.path.getsize(thumb_path) <= max_size_kb * 1024:
+            break
+        quality -= 10
+
+    return thumb_name
+
+
 class PictureOfWeek(models.Model):
     image = models.ImageField(upload_to='picture_of_week/')
+    thumbnail = models.ImageField(upload_to='picture_of_week/', null=True, blank=True, editable=False)
     description = models.CharField('popis', max_length=255)
     author = models.CharField('autor fotografie', max_length=100)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -61,6 +94,10 @@ class PictureOfWeek(models.Model):
     def __str__(self) -> str:
         return f'{self.description} ({self.author})'
 
+    @property
+    def thumb_url(self):
+        return self.thumbnail.url if self.thumbnail else self.image.url
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
@@ -68,3 +105,6 @@ class PictureOfWeek(models.Model):
             if new_name:
                 PictureOfWeek.objects.filter(pk=self.pk).update(image=new_name)
                 self.image.name = new_name
+            thumb_name = make_thumbnail(self.image)
+            PictureOfWeek.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
+            self.thumbnail.name = thumb_name
