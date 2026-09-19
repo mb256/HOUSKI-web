@@ -4,8 +4,15 @@ from PIL import Image, ImageOps
 import os
 
 
-def compress_image(image_path, max_size_kb=400, max_width=1600):
-    """Compress image to fit within max_size_kb and max_width."""
+def compress_image(image_field, max_size_kb=400, max_width=1600):
+    """Compress image to fit within max_size_kb and max_width.
+
+    Always re-encodes to JPEG. If the field's current filename doesn't have
+    a .jpg/.jpeg extension, the file is renamed to match (via the field's
+    storage, to avoid clobbering an unrelated existing file) and the new
+    name (relative to storage root) is returned; otherwise returns None.
+    """
+    image_path = image_field.path
     img = Image.open(image_path)
     # Bake EXIF orientation into pixels (phones store portrait photos as
     # landscape pixels + a rotation tag; JPEG re-save below drops the tag).
@@ -29,6 +36,15 @@ def compress_image(image_path, max_size_kb=400, max_width=1600):
             break
         quality -= 10
 
+    root, ext = os.path.splitext(image_field.name)
+    if ext.lower() in ('.jpg', '.jpeg'):
+        return None
+
+    storage = image_field.storage
+    new_name = storage.get_available_name(root + '.jpg')
+    os.rename(image_path, storage.path(new_name))
+    return new_name
+
 
 class PictureOfWeek(models.Model):
     image = models.ImageField(upload_to='picture_of_week/')
@@ -48,4 +64,7 @@ class PictureOfWeek(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            compress_image(self.image.path)
+            new_name = compress_image(self.image)
+            if new_name:
+                PictureOfWeek.objects.filter(pk=self.pk).update(image=new_name)
+                self.image.name = new_name

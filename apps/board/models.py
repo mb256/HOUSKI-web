@@ -32,4 +32,7 @@ class BoardImage(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            compress_image(self.image.path)
+            new_name = compress_image(self.image)
+            if new_name:
+                BoardImage.objects.filter(pk=self.pk).update(image=new_name)
+                self.image.name = new_name
