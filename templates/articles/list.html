@@ -19,7 +19,7 @@
     {% for article in page_obj %}
     <article class="card article-card">
         {% with article.images.first as cover %}
-            {% if cover %}<img src="{{ cover.image.url }}" alt="" class="article-cover">{% endif %}
+            {% if cover %}<img src="{{ cover.thumb_url }}" alt="" class="article-cover">{% endif %}
         {% endwith %}
         <h2><a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a></h2>
         <p class="post-meta">

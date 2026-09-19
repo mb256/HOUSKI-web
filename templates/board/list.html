@@ -21,7 +21,7 @@
     <div class="post-images">
         {% for img in post.images.all %}
             <button type="button" class="post-image-btn" data-group="post-{{ post.pk }}" data-full="{{ img.image.url }}">
-                <img src="{{ img.image.url }}" alt="" class="post-image-thumb">
+                <img src="{{ img.thumb_url }}" alt="" class="post-image-thumb">
             </button>
         {% endfor %}
     </div>

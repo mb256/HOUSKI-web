@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django_summernote.fields import SummernoteTextField
-from apps.home.models import compress_image
+from apps.home.models import compress_image, make_thumbnail
 
 
 class Category(models.Model):
@@ -50,11 +50,16 @@ class Article(models.Model):
 class ArticleImage(models.Model):
     article = models.ForeignKey(Article, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='articles/')
+    thumbnail = models.ImageField(upload_to='articles/', null=True, blank=True, editable=False)
     caption = models.CharField('popisek', max_length=200, blank=True)
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
+
+    @property
+    def thumb_url(self):
+        return self.thumbnail.url if self.thumbnail else self.image.url
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -63,3 +68,6 @@ class ArticleImage(models.Model):
             if new_name:
                 ArticleImage.objects.filter(pk=self.pk).update(image=new_name)
                 self.image.name = new_name
+            thumb_name = make_thumbnail(self.image)
+            ArticleImage.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
+            self.thumbnail.name = thumb_name
