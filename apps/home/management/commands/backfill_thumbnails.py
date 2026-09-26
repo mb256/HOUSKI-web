@@ -1,15 +1,14 @@
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from apps.articles.models import ArticleImage
 from apps.board.models import BoardImage
 from apps.home.models import PictureOfWeek, make_thumbnail
 
 
 class Command(BaseCommand):
-    help = 'Generates thumbnails for existing article/board/picture-of-week images that are missing one.'
+    help = 'Generates thumbnails for existing board/picture-of-week images that are missing one.'
 
-    MODELS = [ArticleImage, BoardImage, PictureOfWeek]
+    MODELS = [BoardImage, PictureOfWeek]
 
     def handle(self, *args, **kwargs):
         total = 0

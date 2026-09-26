@@ -40,10 +40,23 @@ def test_logged_in_user_can_create_article(client, author):
         'headline': 'Nový článek',
         'text': 'obsah',
         'categories': [],
-        'form-TOTAL_FORMS': '0',
-        'form-INITIAL_FORMS': '0',
     })
     assert Article.objects.filter(headline='Nový článek').exists()
+
+
+@pytest.mark.django_db
+def test_inline_image_src_survives_create(client, author):
+    """Regression test: bleach sanitization must not strip <img src> (see
+    apps.home.fields.SummernoteTextField)."""
+    client.login(username='author2', password='Pass123!')
+    client.post(reverse('articles:create'), {
+        'headline': 'Článek s obrázkem',
+        'text': '<p><img src="/media/django-summernote/test.jpg" alt="popis"></p>',
+        'categories': [],
+    })
+    article = Article.objects.get(headline='Článek s obrázkem')
+    assert 'src="/media/django-summernote/test.jpg"' in article.text
+    assert article.cover_thumbnail_url == '/media/django-summernote/test_thumb.jpg'
 
 
 @pytest.mark.django_db

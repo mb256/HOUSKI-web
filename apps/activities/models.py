@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django_summernote.fields import SummernoteTextField
+from apps.home.fields import SummernoteTextField
 
 
 class Activity(models.Model):

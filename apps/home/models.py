@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django_summernote.models import AbstractAttachment
 from PIL import Image, ImageOps
 import os
 
@@ -107,4 +108,24 @@ class PictureOfWeek(models.Model):
                 self.image.name = new_name
             thumb_name = make_thumbnail(self.image)
             PictureOfWeek.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
+            self.thumbnail.name = thumb_name
+
+
+class SummernoteAttachment(AbstractAttachment):
+    """Attachment model used by every Summernote editor in the project
+    (article/board/activity text fields). Uploaded images are resized to a
+    "detail" size and a sibling thumbnail is generated, exactly like
+    PictureOfWeek above, so inline images stay reasonably small.
+    """
+    thumbnail = models.FileField(upload_to='django-summernote/', null=True, blank=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.file:
+            new_name = compress_image(self.file)
+            if new_name:
+                SummernoteAttachment.objects.filter(pk=self.pk).update(file=new_name)
+                self.file.name = new_name
+            thumb_name = make_thumbnail(self.file)
+            SummernoteAttachment.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
             self.thumbnail.name = thumb_name

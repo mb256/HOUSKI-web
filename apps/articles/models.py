@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
-from django_summernote.fields import SummernoteTextField
-from apps.home.models import compress_image, make_thumbnail
+from apps.home.fields import SummernoteTextField
+import os
+import re
 
 
 class Category(models.Model):
@@ -46,28 +47,19 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse('articles:detail', kwargs={'pk': self.pk})
 
-
-class ArticleImage(models.Model):
-    article = models.ForeignKey(Article, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='articles/')
-    thumbnail = models.ImageField(upload_to='articles/', null=True, blank=True, editable=False)
-    caption = models.CharField('popisek', max_length=200, blank=True)
-    order = models.PositiveSmallIntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
+    _FIRST_IMG_SRC_RE = re.compile(r'<img[^>]+src="([^"]+)"')
 
     @property
-    def thumb_url(self):
-        return self.thumbnail.url if self.thumbnail else self.image.url
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.image:
-            new_name = compress_image(self.image)
-            if new_name:
-                ArticleImage.objects.filter(pk=self.pk).update(image=new_name)
-                self.image.name = new_name
-            thumb_name = make_thumbnail(self.image)
-            ArticleImage.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
-            self.thumbnail.name = thumb_name
+    def cover_thumbnail_url(self):
+        """URL of the thumbnail for the first inline image in `text`, for
+        use as the article's cover on the list page. Images inserted via
+        Summernote (and legacy gallery images migrated into text) are both
+        saved through compress_image/make_thumbnail, which always produce a
+        `<same-path-without-ext>_thumb.jpg` sibling file - so the thumbnail
+        can be derived from the image URL without a DB lookup.
+        """
+        match = self._FIRST_IMG_SRC_RE.search(self.text or '')
+        if not match:
+            return None
+        root, _ext = os.path.splitext(match.group(1))
+        return f'{root}_thumb.jpg'

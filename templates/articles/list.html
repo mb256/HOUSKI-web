@@ -18,9 +18,7 @@
 <div class="card-grid">
     {% for article in page_obj %}
     <article class="card article-card">
-        {% with article.images.first as cover %}
-            {% if cover %}<img src="{{ cover.thumb_url }}" alt="" class="article-cover">{% endif %}
-        {% endwith %}
+        {% if article.cover_thumbnail_url %}<img src="{{ article.cover_thumbnail_url }}" alt="" class="article-cover">{% endif %}
         <h2><a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a></h2>
         <p class="post-meta">
             <span class="post-author">{{ article.author.username }}</span>

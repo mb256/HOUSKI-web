@@ -100,10 +100,11 @@ SUMMERNOTE_CONFIG = {
         'toolbar': [
             ['style', ['bold', 'italic', 'underline', 'clear']],
             ['para', ['ul', 'ol', 'paragraph']],
-            ['insert', ['link']],
+            ['insert', ['link', 'picture']],
             ['view', ['fullscreen']],
         ],
         'lang': 'cs-CZ',
     },
-    'attachment_filesize_limit': 5 * 1024 * 1024,   # 5 MB raw upload
+    'attachment_filesize_limit': 20 * 1024 * 1024,   # 20 MB raw upload (compressed afterwards)
+    'attachment_model': 'home.SummernoteAttachment',
 }

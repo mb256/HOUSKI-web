@@ -2,12 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
-from .models import Article, ArticleImage, Category
-from .forms import ArticleForm, ArticleImageFormSet
+from .models import Article, Category
+from .forms import ArticleForm
 
 
 def article_list(request):
-    articles = Article.objects.select_related('author').prefetch_related('images', 'categories')
+    articles = Article.objects.select_related('author').prefetch_related('categories')
     category_slug = request.GET.get('category')
     if category_slug:
         articles = articles.filter(categories__slug=category_slug)
@@ -21,7 +21,7 @@ def article_list(request):
 
 
 def article_detail(request, pk):
-    article = get_object_or_404(Article.objects.prefetch_related('images', 'categories'), pk=pk)
+    article = get_object_or_404(Article.objects.prefetch_related('categories'), pk=pk)
     return render(request, 'articles/detail.html', {'article': article})
 
 
@@ -29,23 +29,16 @@ def article_detail(request, pk):
 def article_create(request):
     if request.method == 'POST':
         form = ArticleForm(request.POST)
-        formset = ArticleImageFormSet(request.POST, request.FILES)
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             article = form.save(commit=False)
             article.author = request.user
             article.save()
             form.save_m2m()
-            images = formset.save(commit=False)
-            for i, img in enumerate(images):
-                img.article = article
-                img.order = i
-                img.save()
             messages.success(request, 'Článek byl přidán.')
             return redirect('articles:detail', pk=article.pk)
     else:
         form = ArticleForm()
-        formset = ArticleImageFormSet(queryset=ArticleImage.objects.none())
-    return render(request, 'articles/form.html', {'form': form, 'formset': formset, 'action': 'Přidat článek'})
+    return render(request, 'articles/form.html', {'form': form, 'action': 'Přidat článek'})
 
 
 @login_required
@@ -56,21 +49,13 @@ def article_edit(request, pk):
         return redirect('articles:detail', pk=article.pk)
     if request.method == 'POST':
         form = ArticleForm(request.POST, instance=article)
-        formset = ArticleImageFormSet(request.POST, request.FILES, queryset=article.images.all())
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             form.save()
-            images = formset.save(commit=False)
-            for img in images:
-                img.article = article
-                img.save()
-            for img in formset.deleted_objects:
-                img.delete()
             messages.success(request, 'Článek byl upraven.')
             return redirect('articles:detail', pk=article.pk)
     else:
         form = ArticleForm(instance=article)
-        formset = ArticleImageFormSet(queryset=article.images.all())
-    return render(request, 'articles/form.html', {'form': form, 'formset': formset, 'action': 'Upravit článek', 'article': article})
+    return render(request, 'articles/form.html', {'form': form, 'action': 'Upravit článek', 'article': article})
 
 
 @login_required
