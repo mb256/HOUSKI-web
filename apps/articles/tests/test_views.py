@@ -1,5 +1,11 @@
+import io
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
+from PIL import Image
+
 from apps.users.models import User
 from apps.articles.models import Article, Category
 
@@ -80,3 +86,25 @@ def test_article_list_filters_by_category(client, author):
     response = client.get(reverse('articles:list'), {'category': 'climbing'})
     headlines = [a.headline for a in response.context['page_obj']]
     assert headlines == ['Lezecký výlet']
+
+
+@pytest.mark.django_db
+def test_create_view_accepts_uploaded_cover_image(client, author, tmp_path):
+    """Regression test: ArticleForm must be bound with request.FILES, not
+    just request.POST, or an uploaded cover_image is silently dropped."""
+    with override_settings(MEDIA_ROOT=tmp_path):
+        client.login(username='author2', password='Pass123!')
+        buf = io.BytesIO()
+        Image.new('RGB', (10, 10), color='blue').save(buf, 'PNG')
+        cover = SimpleUploadedFile('cover.png', buf.getvalue(), content_type='image/png')
+
+        client.post(reverse('articles:create'), {
+            'headline': 'Článek s titulním obrázkem',
+            'text': 'obsah',
+            'categories': [],
+            'cover_image': cover,
+        })
+
+        article = Article.objects.get(headline='Článek s titulním obrázkem')
+        assert article.cover_image
+        assert article.cover_image_thumbnail

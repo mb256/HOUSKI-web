@@ -25,6 +25,12 @@ def _attachment(tmp_path, name='photo.png'):
         )
 
 
+def _cover_upload(name='cover.png'):
+    buf = io.BytesIO()
+    Image.new('RGB', (10, 10), color='blue').save(buf, 'PNG')
+    return SimpleUploadedFile(name, buf.getvalue(), content_type='image/png')
+
+
 @pytest.mark.django_db
 def test_cover_thumbnail_url_none_without_image(author):
     article = Article.objects.create(author=author, headline='Bez obrázku', text='<p>jen text</p>')
@@ -80,3 +86,25 @@ def test_delete_article_removes_owned_attachment(author, tmp_path):
         article.delete()
         assert not SummernoteAttachment.objects.filter(pk=attachment.pk).exists()
         assert not os.path.exists(file_path)
+
+
+@pytest.mark.django_db
+def test_cover_image_takes_precedence_over_first_inline_image(author, tmp_path):
+    with override_settings(MEDIA_ROOT=tmp_path):
+        text = '<p><img src="/media/django-summernote/inline.jpg"></p>'
+        article = Article.objects.create(
+            author=author, headline='S titulním obrázkem', text=text,
+            cover_image=_cover_upload(),
+        )
+        article.refresh_from_db()
+        assert article.cover_image_thumbnail
+        assert article.cover_thumbnail_url == article.cover_image_thumbnail.url
+        assert 'inline' not in article.cover_thumbnail_url
+
+
+@pytest.mark.django_db
+def test_falls_back_to_first_inline_image_without_cover_image(author, tmp_path):
+    with override_settings(MEDIA_ROOT=tmp_path):
+        text = '<p><img src="/media/django-summernote/inline.jpg"></p>'
+        article = Article.objects.create(author=author, headline='Bez titulního obrázku', text=text)
+        assert article.cover_thumbnail_url == '/media/django-summernote/inline_thumb.jpg'

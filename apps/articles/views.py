@@ -28,7 +28,7 @@ def article_detail(request, pk):
 @login_required
 def article_create(request):
     if request.method == 'POST':
-        form = ArticleForm(request.POST)
+        form = ArticleForm(request.POST, request.FILES)
         if form.is_valid():
             article = form.save(commit=False)
             article.author = request.user
@@ -48,7 +48,7 @@ def article_edit(request, pk):
         messages.error(request, 'Nemáte oprávnění upravit tento článek.')
         return redirect('articles:detail', pk=article.pk)
     if request.method == 'POST':
-        form = ArticleForm(request.POST, instance=article)
+        form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
             messages.success(request, 'Článek byl upraven.')
