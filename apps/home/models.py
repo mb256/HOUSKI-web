@@ -4,8 +4,26 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django_summernote.models import AbstractAttachment
 from PIL import Image, ImageOps
+import io
 import os
 import re
+
+
+def _encode_jpeg_within_size(img, max_size_kb, quality):
+    """Encode `img` as JPEG in memory, lowering quality by 10 until it fits
+    under max_size_kb or quality drops to 30 (whichever first) - same
+    stepping as the callers used to do writing straight to disk on every
+    attempt. Returns the final encoded bytes; the caller writes them once.
+    """
+    buf = io.BytesIO()
+    while quality > 30:
+        buf.seek(0)
+        buf.truncate()
+        img.save(buf, 'JPEG', quality=quality, optimize=True)
+        if buf.tell() <= max_size_kb * 1024:
+            break
+        quality -= 10
+    return buf.getvalue()
 
 
 def compress_image(image_field, max_size_kb=400, max_width=1600):
@@ -32,13 +50,9 @@ def compress_image(image_field, max_size_kb=400, max_width=1600):
     if img.mode in ('RGBA', 'P'):
         img = img.convert('RGB')
 
-    # Save with quality reduction until under max_size_kb
-    quality = 85
-    while quality > 30:
-        img.save(image_path, 'JPEG', quality=quality, optimize=True)
-        if os.path.getsize(image_path) <= max_size_kb * 1024:
-            break
-        quality -= 10
+    data = _encode_jpeg_within_size(img, max_size_kb, quality=85)
+    with open(image_path, 'wb') as f:
+        f.write(data)
 
     root, ext = os.path.splitext(image_field.name)
     if ext.lower() in ('.jpg', '.jpeg'):
@@ -72,12 +86,9 @@ def make_thumbnail(image_field, max_size_kb=200, max_width=400):
     thumb_name = f'{root}_thumb.jpg'
     thumb_path = image_field.storage.path(thumb_name)
 
-    quality = 80
-    while quality > 30:
-        img.save(thumb_path, 'JPEG', quality=quality, optimize=True)
-        if os.path.getsize(thumb_path) <= max_size_kb * 1024:
-            break
-        quality -= 10
+    data = _encode_jpeg_within_size(img, max_size_kb, quality=80)
+    with open(thumb_path, 'wb') as f:
+        f.write(data)
 
     return thumb_name
 
