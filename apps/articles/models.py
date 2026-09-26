@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from apps.home.fields import SummernoteTextField
+from apps.home.models import sync_text_attachments, delete_text_attachments
 import os
 import re
 
@@ -46,6 +47,14 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         return reverse('articles:detail', kwargs={'pk': self.pk})
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        sync_text_attachments(self, 'text')
+
+    def delete(self, *args, **kwargs):
+        delete_text_attachments(self)
+        return super().delete(*args, **kwargs)
 
     _FIRST_IMG_SRC_RE = re.compile(r'<img[^>]+src="([^"]+)"')
 
