@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from apps.home.fields import SummernoteTextField
-from apps.home.models import compress_image, make_thumbnail, sync_text_attachments, delete_text_attachments   # reuse helper
+from apps.home.models import process_uploaded_image, sync_text_attachments, delete_text_attachments
 
 
 class BoardPost(models.Model):
@@ -45,10 +45,4 @@ class BoardImage(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            new_name = compress_image(self.image)
-            if new_name:
-                BoardImage.objects.filter(pk=self.pk).update(image=new_name)
-                self.image.name = new_name
-            thumb_name = make_thumbnail(self.image)
-            BoardImage.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
-            self.thumbnail.name = thumb_name
+            process_uploaded_image(self, 'image', 'thumbnail')

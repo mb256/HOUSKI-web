@@ -82,6 +82,28 @@ def make_thumbnail(image_field, max_size_kb=200, max_width=400):
     return thumb_name
 
 
+def process_uploaded_image(instance, image_attr, thumbnail_attr):
+    """Compress the image at `getattr(instance, image_attr)` in place,
+    generate a thumbnail at `thumbnail_attr`, and persist both onto
+    `instance`'s row directly via `.update()` (bypassing `save()` to avoid
+    recursing back into it), keeping `instance` in memory consistent with
+    what's now stored. Call after `super().save()`, only when the image
+    field is set.
+    """
+    image_field = getattr(instance, image_attr)
+    updates = {}
+
+    new_name = compress_image(image_field)
+    if new_name:
+        image_field.name = new_name
+        updates[image_attr] = new_name
+
+    updates[thumbnail_attr] = thumb_name = make_thumbnail(image_field)
+
+    type(instance).objects.filter(pk=instance.pk).update(**updates)
+    getattr(instance, thumbnail_attr).name = thumb_name
+
+
 class PictureOfWeek(models.Model):
     image = models.ImageField(upload_to='picture_of_week/')
     thumbnail = models.ImageField(upload_to='picture_of_week/', null=True, blank=True, editable=False)
@@ -105,13 +127,7 @@ class PictureOfWeek(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.image:
-            new_name = compress_image(self.image)
-            if new_name:
-                PictureOfWeek.objects.filter(pk=self.pk).update(image=new_name)
-                self.image.name = new_name
-            thumb_name = make_thumbnail(self.image)
-            PictureOfWeek.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
-            self.thumbnail.name = thumb_name
+            process_uploaded_image(self, 'image', 'thumbnail')
 
 
 class SummernoteAttachment(AbstractAttachment):
@@ -133,13 +149,7 @@ class SummernoteAttachment(AbstractAttachment):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.file:
-            new_name = compress_image(self.file)
-            if new_name:
-                SummernoteAttachment.objects.filter(pk=self.pk).update(file=new_name)
-                self.file.name = new_name
-            thumb_name = make_thumbnail(self.file)
-            SummernoteAttachment.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
-            self.thumbnail.name = thumb_name
+            process_uploaded_image(self, 'file', 'thumbnail')
 
 
 _IMG_SRC_RE = re.compile(r'<img[^>]+src="([^"]+)"')

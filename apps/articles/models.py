@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from apps.home.fields import SummernoteTextField
-from apps.home.models import compress_image, make_thumbnail, sync_text_attachments, delete_text_attachments
+from apps.home.models import process_uploaded_image, sync_text_attachments, delete_text_attachments
 import os
 import re
 
@@ -54,13 +54,7 @@ class Article(models.Model):
         super().save(*args, **kwargs)
         sync_text_attachments(self, 'text')
         if self.cover_image:
-            new_name = compress_image(self.cover_image)
-            if new_name:
-                Article.objects.filter(pk=self.pk).update(cover_image=new_name)
-                self.cover_image.name = new_name
-            thumb_name = make_thumbnail(self.cover_image)
-            Article.objects.filter(pk=self.pk).update(cover_image_thumbnail=thumb_name)
-            self.cover_image_thumbnail.name = thumb_name
+            process_uploaded_image(self, 'cover_image', 'cover_image_thumbnail')
 
     def delete(self, *args, **kwargs):
         delete_text_attachments(self)
