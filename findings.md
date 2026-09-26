@@ -6,13 +6,17 @@ DONE
 2. No relationship between  Article  and its inline images.  SummernoteAttachment  has no FK to the  Article / BoardPost  that uses it. Deleting an article never deletes its uploaded/compressed images or thumbnails — orphaned files accumulate in  media/  indefinitely.
 DONE
 
-1. Copy-pasted  save()  override (compress → two separate  .update()  calls → make_thumbnail) duplicated verbatim across  PictureOfWeek ,  SummernoteAttachment  ( apps/home/models.py ) and  BoardImage  ( apps/board/models.py ). Violates DRY; a mixin or a single helper ( process_uploaded_image(instance, field_name) ) would remove ~15 duplicated lines ×3.
+3. Copy-pasted  save()  override (compress → two separate  .update()  calls → make_thumbnail) duplicated verbatim across  PictureOfWeek ,  SummernoteAttachment  ( apps/home/models.py ) and  BoardImage  ( apps/board/models.py ). Violates DRY; a mixin or a single helper ( process_uploaded_image(instance, field_name) ) would remove ~15 duplicated lines ×3.
+DONE
 
-2. Two  UPDATE  queries instead of one in every one of those  save()  methods ( .update(image=...)  then  .update(thumbnail=...) ), plus the initial  INSERT  — 3 DB writes for what could be 2.
+4. Two  UPDATE  queries instead of one in every one of those  save()  methods ( .update(image=...)  then  .update(thumbnail=...) ), plus the initial  INSERT  — 3 DB writes for what could be 2.
+DONE
 
 3. Image re-processing does redundant I/O:  compress_image  and  make_thumbnail  each independently call  Image.open(image_field.path)  (file read from disk twice), and the JPEG quality-reduction loop re-writes the file to disk up to 6 times per save instead of probing size in memory before one final write.
+DONE
 
 4. Storage abstraction leak:  compress_image  uses  os.rename(image_path, storage.path(new_name))  directly instead of the storage API, tying the code to local-filesystem storage only (breaks silently if  MEDIA  storage is ever swapped for S3/cloud storage).
+DONE
 
 5. Cross-app layering smell:  compress_image / make_thumbnail  are generic image utilities but live in  apps/home/models.py ;  apps/board/models.py  imports them from another app's models module. Belongs in a shared, app-agnostic module (e.g.  apps/common/images.py ).
 

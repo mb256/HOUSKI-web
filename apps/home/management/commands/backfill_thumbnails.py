@@ -2,7 +2,8 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from apps.board.models import BoardImage
-from apps.home.models import PictureOfWeek, make_thumbnail
+from apps.common.images import make_thumbnail
+from apps.home.models import PictureOfWeek
 
 
 class Command(BaseCommand):

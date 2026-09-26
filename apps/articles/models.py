@@ -2,7 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from apps.home.fields import SummernoteTextField
-from apps.home.models import process_uploaded_image, sync_text_attachments, delete_text_attachments
+from apps.common.images import process_uploaded_image
+from apps.home.models import sync_text_attachments, delete_text_attachments
 import os
 import re
 
