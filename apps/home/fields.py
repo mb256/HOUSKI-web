@@ -20,7 +20,9 @@ ATTRIBUTES = {
 
 class SummernoteTextFormField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        kwargs.update({'widget': SummernoteWidget()})
+        # Only default the widget - a caller-supplied one (e.g. a per-form
+        # SummernoteWidget with custom toolbar attrs) must not be overridden.
+        kwargs.setdefault('widget', SummernoteWidget())
         super().__init__(*args, **kwargs)
 
     def to_python(self, value):

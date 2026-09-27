@@ -9,7 +9,18 @@ class BoardPostForm(forms.ModelForm):
         model = BoardPost
         fields = ['headline', 'text']
         labels = {'headline': 'Nadpis (nepovinný)', 'text': 'Text příspěvku'}
-        widgets = {'text': SummernoteWidget()}
+        widgets = {
+            # No 'picture' button: board images are attached separately via
+            # BoardImage below the text, not embedded inline in Summernote.
+            'text': SummernoteWidget(attrs={'summernote': {
+                'toolbar': [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen']],
+                ],
+            }}),
+        }
 
 
 BoardImageFormSet = modelformset_factory(
