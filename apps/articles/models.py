@@ -1,8 +1,11 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
-from django_summernote.fields import SummernoteTextField
-from apps.home.models import compress_image, make_thumbnail
+from apps.home.fields import SummernoteTextField
+from apps.common.images import process_uploaded_image
+from apps.home.models import sync_text_attachments, delete_text_attachments
+import os
+import re
 
 
 class Category(models.Model):
@@ -32,6 +35,8 @@ class Article(models.Model):
     headline = models.CharField('nadpis', max_length=300)
     text = SummernoteTextField('text')
     categories = models.ManyToManyField(Category, blank=True, verbose_name='kategorie')
+    cover_image = models.ImageField('titulní obrázek', upload_to='articles/covers/', null=True, blank=True)
+    cover_image_thumbnail = models.ImageField(upload_to='articles/covers/', null=True, blank=True, editable=False)
     created_at = models.DateTimeField('vytvořeno', auto_now_add=True)
     updated_at = models.DateTimeField('aktualizováno', auto_now=True)
 
@@ -46,28 +51,32 @@ class Article(models.Model):
     def get_absolute_url(self):
         return reverse('articles:detail', kwargs={'pk': self.pk})
 
-
-class ArticleImage(models.Model):
-    article = models.ForeignKey(Article, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='articles/')
-    thumbnail = models.ImageField(upload_to='articles/', null=True, blank=True, editable=False)
-    caption = models.CharField('popisek', max_length=200, blank=True)
-    order = models.PositiveSmallIntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
-
-    @property
-    def thumb_url(self):
-        return self.thumbnail.url if self.thumbnail else self.image.url
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.image:
-            new_name = compress_image(self.image)
-            if new_name:
-                ArticleImage.objects.filter(pk=self.pk).update(image=new_name)
-                self.image.name = new_name
-            thumb_name = make_thumbnail(self.image)
-            ArticleImage.objects.filter(pk=self.pk).update(thumbnail=thumb_name)
-            self.thumbnail.name = thumb_name
+        sync_text_attachments(self, 'text')
+        if self.cover_image:
+            process_uploaded_image(self, 'cover_image', 'cover_image_thumbnail')
+
+    def delete(self, *args, **kwargs):
+        delete_text_attachments(self)
+        return super().delete(*args, **kwargs)
+
+    _FIRST_IMG_SRC_RE = re.compile(r'<img[^>]+src="([^"]+)"')
+
+    @property
+    def cover_thumbnail_url(self):
+        """URL of the article's cover thumbnail: the manually uploaded
+        `cover_image` if set, otherwise the thumbnail of the first inline
+        image in `text`. Images inserted via Summernote (and legacy gallery
+        images migrated into text) are saved through
+        compress_image/make_thumbnail, which always produce a
+        `<same-path-without-ext>_thumb.jpg` sibling file - so the fallback
+        thumbnail can be derived from the image URL without a DB lookup.
+        """
+        if self.cover_image_thumbnail:
+            return self.cover_image_thumbnail.url
+        match = self._FIRST_IMG_SRC_RE.search(self.text or '')
+        if not match:
+            return None
+        root, _ext = os.path.splitext(match.group(1))
+        return f'{root}_thumb.jpg'

@@ -1,5 +1,11 @@
+import io
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
+from PIL import Image
+
 from apps.users.models import User
 from apps.articles.models import Article, Category
 
@@ -40,10 +46,23 @@ def test_logged_in_user_can_create_article(client, author):
         'headline': 'Nový článek',
         'text': 'obsah',
         'categories': [],
-        'form-TOTAL_FORMS': '0',
-        'form-INITIAL_FORMS': '0',
     })
     assert Article.objects.filter(headline='Nový článek').exists()
+
+
+@pytest.mark.django_db
+def test_inline_image_src_survives_create(client, author):
+    """Regression test: bleach sanitization must not strip <img src> (see
+    apps.home.fields.SummernoteTextField)."""
+    client.login(username='author2', password='Pass123!')
+    client.post(reverse('articles:create'), {
+        'headline': 'Článek s obrázkem',
+        'text': '<p><img src="/media/django-summernote/test.jpg" alt="popis"></p>',
+        'categories': [],
+    })
+    article = Article.objects.get(headline='Článek s obrázkem')
+    assert 'src="/media/django-summernote/test.jpg"' in article.text
+    assert article.cover_thumbnail_url == '/media/django-summernote/test_thumb.jpg'
 
 
 @pytest.mark.django_db
@@ -67,3 +86,25 @@ def test_article_list_filters_by_category(client, author):
     response = client.get(reverse('articles:list'), {'category': 'climbing'})
     headlines = [a.headline for a in response.context['page_obj']]
     assert headlines == ['Lezecký výlet']
+
+
+@pytest.mark.django_db
+def test_create_view_accepts_uploaded_cover_image(client, author, tmp_path):
+    """Regression test: ArticleForm must be bound with request.FILES, not
+    just request.POST, or an uploaded cover_image is silently dropped."""
+    with override_settings(MEDIA_ROOT=tmp_path):
+        client.login(username='author2', password='Pass123!')
+        buf = io.BytesIO()
+        Image.new('RGB', (10, 10), color='blue').save(buf, 'PNG')
+        cover = SimpleUploadedFile('cover.png', buf.getvalue(), content_type='image/png')
+
+        client.post(reverse('articles:create'), {
+            'headline': 'Článek s titulním obrázkem',
+            'text': 'obsah',
+            'categories': [],
+            'cover_image': cover,
+        })
+
+        article = Article.objects.get(headline='Článek s titulním obrázkem')
+        assert article.cover_image
+        assert article.cover_image_thumbnail

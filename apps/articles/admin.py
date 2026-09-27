@@ -1,10 +1,5 @@
 from django.contrib import admin
-from .models import Category, Article, ArticleImage
-
-
-class ArticleImageInline(admin.TabularInline):
-    model = ArticleImage
-    extra = 0
+from .models import Category, Article
 
 
 @admin.register(Category)
@@ -18,4 +13,3 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ['categories', 'created_at']
     search_fields = ['headline', 'text', 'author__username']
     date_hierarchy = 'created_at'
-    inlines = [ArticleImageInline]

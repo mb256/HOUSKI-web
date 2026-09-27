@@ -274,6 +274,15 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 .post-headline { font-size: 1.1rem; margin-bottom: 0.5rem; }
 .post-text, .post-text * { color: var(--text-secondary) !important; font-family: var(--font-sans) !important; }
 .post-text p { margin-bottom: 0.5rem; }
+.post-text img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 70vh !important;
+    display: block;
+    margin: 0.5rem auto;
+    border-radius: var(--radius);
+}
 .post-images { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .post-image-thumb { width: 120px; height: 90px; object-fit: contain; background: var(--bg-card); border-radius: var(--radius); }
 .post-image-btn { padding: 0; border: none; background: none; cursor: pointer; line-height: 0; }
