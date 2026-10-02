@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from apps.home.fields import SummernoteTextField
 from apps.common.images import process_uploaded_image
 from apps.home.models import sync_text_attachments, delete_text_attachments
@@ -37,7 +38,7 @@ class Article(models.Model):
     categories = models.ManyToManyField(Category, blank=True, verbose_name='kategorie')
     cover_image = models.ImageField('titulní obrázek', upload_to='articles/covers/', null=True, blank=True)
     cover_image_thumbnail = models.ImageField(upload_to='articles/covers/', null=True, blank=True, editable=False)
-    created_at = models.DateTimeField('vytvořeno', auto_now_add=True)
+    created_at = models.DateTimeField('vytvořeno', default=timezone.now)
     updated_at = models.DateTimeField('aktualizováno', auto_now=True)
 
     class Meta:
