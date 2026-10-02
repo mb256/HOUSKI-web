@@ -9,6 +9,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
+    fields = ['author', 'headline', 'text', 'categories', 'cover_image', 'created_at']
     list_display = ['headline', 'author', 'created_at']
     list_filter = ['categories', 'created_at']
     search_fields = ['headline', 'text', 'author__username']
