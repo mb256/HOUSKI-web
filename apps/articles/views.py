@@ -20,6 +20,11 @@ def article_list(request):
     })
 
 
+def article_archive(request):
+    articles = Article.objects.order_by('-created_at')
+    return render(request, 'articles/archive.html', {'articles': articles})
+
+
 def article_detail(request, pk):
     article = get_object_or_404(Article.objects.prefetch_related('categories'), pk=pk)
     return render(request, 'articles/detail.html', {'article': article})
