@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Všechny články – HOUSKi{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Všechny články</h1>
+    <a href="{% url 'articles:list' %}" class="btn btn-secondary">← Zpět na články</a>
+</div>
+
+{% regroup articles by created_at.year as year_groups %}
+{% for group in year_groups %}
+    <h3 class="year-separator">{{ group.grouper }}</h3>
+    <ul class="article-archive-list">
+        {% for article in group.list %}
+        <li>
+            <a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a>
+            <span class="post-date">{{ article.created_at|date:"j. n. Y" }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+{% empty %}
+    <p>Zatím žádné články.</p>
+{% endfor %}
+{% endblock %}

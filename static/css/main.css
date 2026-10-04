@@ -267,7 +267,8 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 .auth-box h1 { margin-bottom: 1.5rem; }
 
 /* ===== Board ===== */
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
+.page-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .board-post { margin-bottom: 1.5rem; }
 .post-meta { display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
 .post-author { color: var(--accent-yellow); }
@@ -330,6 +331,18 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 .chip:hover { color: var(--text-primary); text-decoration: none; }
 .chip-active { background: var(--accent-yellow); color: #111; border-color: var(--accent-yellow); }
 .chip-sm { font-size: 0.75rem; padding: 0.15rem 0.6rem; }
+.year-separator {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+}
+.year-separator:first-child { border-top: none; padding-top: 0; }
+.article-archive-list { list-style: none; padding: 0; }
+.article-archive-list li { padding: 0.35rem 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 1rem; }
 .article-card h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
 .article-cover { width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius); margin-bottom: 0.75rem; }
 .article-categories { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }

@@ -89,6 +89,45 @@ def test_article_list_filters_by_category(client, author):
 
 
 @pytest.mark.django_db
+def test_article_list_groups_by_year(client, author):
+    import datetime
+
+    old = Article.objects.create(author=author, headline='Starý článek', text='text')
+    Article.objects.filter(pk=old.pk).update(created_at=datetime.datetime(2022, 1, 1, tzinfo=datetime.timezone.utc))
+    new = Article.objects.create(author=author, headline='Nový článek', text='text')
+    Article.objects.filter(pk=new.pk).update(created_at=datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc))
+
+    response = client.get(reverse('articles:list'))
+    content = response.content.decode()
+    assert '2024' in content and '2022' in content
+    assert content.index('2024') < content.index('Nový článek') < content.index('2022') < content.index('Starý článek')
+
+
+@pytest.mark.django_db
+def test_pagination_preserves_category_filter(client, author):
+    climbing = Category.objects.create(slug='climbing', name='Lezení')
+    for i in range(13):
+        a = Article.objects.create(author=author, headline=f'Článek {i}', text='text')
+        a.categories.add(climbing)
+
+    response = client.get(reverse('articles:list'), {'category': 'climbing'})
+    assert 'category=climbing&page=2' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_article_archive_lists_all_articles_regardless_of_category(client, author):
+    climbing = Category.objects.create(slug='climbing', name='Lezení')
+    a1 = Article.objects.create(author=author, headline='S kategorií', text='text')
+    a1.categories.add(climbing)
+    Article.objects.create(author=author, headline='Bez kategorie', text='text')
+
+    response = client.get(reverse('articles:archive'))
+    assert response.status_code == 200
+    headlines = [a.headline for a in response.context['articles']]
+    assert set(headlines) == {'S kategorií', 'Bez kategorie'}
+
+
+@pytest.mark.django_db
 def test_create_view_accepts_uploaded_cover_image(client, author, tmp_path):
     """Regression test: ArticleForm must be bound with request.FILES, not
     just request.POST, or an uploaded cover_image is silently dropped."""
