@@ -17,10 +17,19 @@
     {% endfor %}
 
     <h3>Obrázky (max. 5)</h3>
+    {% for error in formset.non_form_errors %}
+        <p class="form-errors">{{ error }}</p>
+    {% endfor %}
     {% for image_form in formset %}
         <div class="form-group">
+            {% for hidden in image_form.hidden_fields %}{{ hidden }}{% endfor %}
             {{ image_form.image }}
-            {% if image_form.instance.pk %}{{ image_form.DELETE }} <label>Smazat obrázek</label>{% endif %}
+            {% if image_form.instance.pk %}
+                <label class="checkbox-label">{{ image_form.DELETE }} Smazat obrázek</label>
+            {% endif %}
+            {% for error in image_form.errors %}
+                <p class="form-errors">{{ error }}</p>
+            {% endfor %}
         </div>
     {% endfor %}
 

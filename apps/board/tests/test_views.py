@@ -1,7 +1,13 @@
+import io
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
+from PIL import Image
+
 from apps.users.models import User
-from apps.board.models import BoardPost
+from apps.board.models import BoardPost, BoardImage
 
 
 @pytest.fixture
@@ -50,6 +56,70 @@ def test_non_author_cannot_edit_post(client, author, other_user):
     post.refresh_from_db()
     assert post.headline == 'Původní'
     assert response.status_code == 302
+
+
+def _board_image(name='photo.png'):
+    buf = io.BytesIO()
+    Image.new('RGB', (10, 10), color='green').save(buf, 'PNG')
+    return SimpleUploadedFile(name, buf.getvalue(), content_type='image/png')
+
+
+@pytest.mark.django_db
+def test_author_can_edit_post_without_images(client, author):
+    """Regression guard: editing a post with zero images must keep working."""
+    post = BoardPost.objects.create(author=author, headline='Původní', text='text')
+    client.login(username='author1', password='Pass123!')
+    response = client.post(reverse('board:edit', args=[post.pk]), {
+        'headline': 'Upraveno', 'text': 'novy text',
+        'form-TOTAL_FORMS': '5', 'form-INITIAL_FORMS': '0',
+        'form-MIN_NUM_FORMS': '0', 'form-MAX_NUM_FORMS': '5',
+    })
+    post.refresh_from_db()
+    assert response.status_code == 302
+    assert post.headline == 'Upraveno'
+
+
+@pytest.mark.django_db
+def test_author_can_edit_post_with_existing_image(client, author, tmp_path):
+    """Regression test: editing a post that already has a BoardImage must
+    succeed and keep the image attached (see form.html hidden 'id' field)."""
+    with override_settings(MEDIA_ROOT=tmp_path):
+        post = BoardPost.objects.create(author=author, headline='Původní', text='text')
+        image = BoardImage.objects.create(post=post, image=_board_image(), order=0)
+        client.login(username='author1', password='Pass123!')
+
+        response = client.post(reverse('board:edit', args=[post.pk]), {
+            'headline': 'Upraveno', 'text': 'novy text',
+            'form-TOTAL_FORMS': '5', 'form-INITIAL_FORMS': '1',
+            'form-MIN_NUM_FORMS': '0', 'form-MAX_NUM_FORMS': '5',
+            'form-0-id': str(image.pk),
+            'form-0-image': '',
+        })
+
+        post.refresh_from_db()
+        assert response.status_code == 302
+        assert post.headline == 'Upraveno'
+        assert BoardImage.objects.filter(pk=image.pk, post=post).exists()
+
+
+@pytest.mark.django_db
+def test_author_can_delete_existing_image_via_formset(client, author, tmp_path):
+    with override_settings(MEDIA_ROOT=tmp_path):
+        post = BoardPost.objects.create(author=author, headline='Původní', text='text')
+        image = BoardImage.objects.create(post=post, image=_board_image(), order=0)
+        client.login(username='author1', password='Pass123!')
+
+        response = client.post(reverse('board:edit', args=[post.pk]), {
+            'headline': 'Původní', 'text': 'text',
+            'form-TOTAL_FORMS': '5', 'form-INITIAL_FORMS': '1',
+            'form-MIN_NUM_FORMS': '0', 'form-MAX_NUM_FORMS': '5',
+            'form-0-id': str(image.pk),
+            'form-0-image': '',
+            'form-0-DELETE': 'on',
+        })
+
+        assert response.status_code == 302
+        assert not BoardImage.objects.filter(pk=image.pk).exists()
 
 
 @pytest.mark.django_db
