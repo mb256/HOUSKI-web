@@ -166,6 +166,7 @@ p { margin-bottom: 1rem; color: var(--text-secondary); }
 /* ===== Forms ===== */
 .form-group { margin-bottom: 1.25rem; }
 .form-group label { display: block; margin-bottom: 0.4rem; color: var(--text-secondary); font-size: 0.9rem; }
+.checkbox-label { display: flex !important; align-items: center; gap: 0.4rem; width: fit-content; cursor: pointer; }
 .form-control {
     width: 100%;
     background: var(--bg-secondary);
