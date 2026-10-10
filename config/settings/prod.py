@@ -16,4 +16,4 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_TRUSTED_ORIGINS = ['https://yourname.pythonanywhere.com']
+CSRF_TRUSTED_ORIGINS = ['https://broukhouski.pythonanywhere.com']
