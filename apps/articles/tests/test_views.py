@@ -34,6 +34,14 @@ def test_article_detail_returns_200(client, author):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize('show_author', [True, False])
+def test_author_shown_only_when_show_author(client, author, show_author):
+    article = Article.objects.create(author=author, headline='Autor', text='text', show_author=show_author)
+    for url in (reverse('articles:list'), reverse('articles:detail', args=[article.pk])):
+        assert (b'author2' in client.get(url).content) is show_author
+
+
+@pytest.mark.django_db
 def test_anonymous_user_cannot_create_article(client):
     response = client.get(reverse('articles:create'))
     assert response.status_code == 302

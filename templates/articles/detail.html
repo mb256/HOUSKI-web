@@ -4,7 +4,7 @@
 <article class="card article-detail">
     <h1>{{ article.headline }}</h1>
     <p class="post-meta">
-        <span class="post-author">{{ article.author.username }}</span>
+        {% if article.show_author %}<span class="post-author">{{ article.author.username }}</span>{% endif %}
         <span class="post-date">{{ article.created_at|date:"j. n. Y H:i" }}</span>
     </p>
     <div class="article-categories">

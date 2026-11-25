@@ -154,7 +154,7 @@ class Command(BaseCommand):
                         if caption:
                             parts.append(f'<p><i>{caption}</i></p>')
                 Article.objects.create(
-                    author=author_user, headline=headline,
+                    author=author_user, show_author=False, headline=headline,
                     text='\n'.join(parts), created_at=created_at,
                 )
         except Exception:

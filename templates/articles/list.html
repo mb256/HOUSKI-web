@@ -27,7 +27,7 @@
             {% if article.cover_thumbnail_url %}<img src="{{ article.cover_thumbnail_url }}" alt="" class="article-cover">{% endif %}
             <h2><a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a></h2>
             <p class="post-meta">
-                <span class="post-author">{{ article.author.username }}</span>
+                {% if article.show_author %}<span class="post-author">{{ article.author.username }}</span>{% endif %}
                 <span class="post-date">{{ article.created_at|date:"j. n. Y" }}</span>
             </p>
             <div class="article-categories">
