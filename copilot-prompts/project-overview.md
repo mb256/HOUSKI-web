@@ -171,7 +171,7 @@ Visualisation will be using best practicies to separate graphics from logic and 
 
 There will be also default super user 
 with name: brouk
-password: Admin1234#
+password: 
 
 Image storage — local media files will be used for storrage. Original image files are compressed when uploaded to Max file size cca 400 KB (landscape 1200–1600 px wide image and and equivalently for portrait shape) ?
 

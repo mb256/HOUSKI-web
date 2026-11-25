@@ -19,7 +19,6 @@ Copy-Item .env.example .env
 # Apply database migrations
 poetry run python manage.py migrate
 
-# Create the default superuser (username: brouk, password: Admin1234#)
 poetry run python manage.py create_default_superuser
 
 # Seed article categories

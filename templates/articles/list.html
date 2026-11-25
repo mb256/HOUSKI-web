@@ -24,17 +24,19 @@
         <h3 class="year-separator">{{ group.grouper }}</h3>
         {% for article in group.list %}
         <article class="card article-card">
-            {% if article.cover_thumbnail_url %}<img src="{{ article.cover_thumbnail_url }}" alt="" class="article-cover">{% endif %}
-            <h2><a href="{% url 'articles:detail' article.pk %}">{{ article.headline }}</a></h2>
-            <p class="post-meta">
-                {% if article.show_author %}<span class="post-author">{{ article.author.username }}</span>{% endif %}
-                <span class="post-date">{{ article.created_at|date:"j. n. Y" }}</span>
-            </p>
-            <div class="article-categories">
-                {% for category in article.categories.all %}
-                    <span class="chip chip-sm">{{ category.name }}</span>
-                {% endfor %}
-            </div>
+            <a href="{% url 'articles:detail' article.pk %}" class="article-card-link">
+                {% if article.cover_thumbnail_url %}<img src="{{ article.cover_thumbnail_url }}" alt="" class="article-cover">{% endif %}
+                <h2>{{ article.headline }}</h2>
+                <p class="post-meta">
+                    {% if article.show_author %}<span class="post-author">{{ article.author.username }}</span>{% endif %}
+                    <span class="post-date">{{ article.created_at|date:"j. n. Y" }}</span>
+                </p>
+                <div class="article-categories">
+                    {% for category in article.categories.all %}
+                        <span class="chip chip-sm">{{ category.name }}</span>
+                    {% endfor %}
+                </div>
+            </a>
         </article>
         {% endfor %}
     {% empty %}

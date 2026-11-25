@@ -411,7 +411,7 @@ poetry run python manage.py migrate
 poetry run python manage.py createsuperuser
 # username: brouk
 # email: (leave blank or add)
-# password: Admin1234#
+# password: 
 # must_change_password should be set to False for this admin user via admin panel after login
 ```
 
