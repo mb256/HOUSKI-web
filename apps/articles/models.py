@@ -10,16 +10,7 @@ import re
 
 
 class Category(models.Model):
-    CATEGORY_CHOICES = [
-        ('climbing',     'Lezení'),
-        ('mountains',    'Hory'),
-        ('skialpinism',  'Skialpinismus'),
-        ('trekking',     'Trekking'),
-        ('other_sport',  'Jiný sport'),
-        ('kids',         'Děti'),
-        ('pub',          'Hospoda'),
-    ]
-    slug = models.CharField(max_length=20, choices=CATEGORY_CHOICES, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
 
     class Meta:
