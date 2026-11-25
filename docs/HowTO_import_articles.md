@@ -33,18 +33,19 @@ tar czf ~/media.bak_$(date +%F).tgz media
 
 ## 4. Upload the content folder
 
-Local (PowerShell) - zip the folder:
+Local (PowerShell) - pack the folder as tar.gz (not zip: `Compress-Archive` does
+not flag file names as UTF-8, so `unzip` on PythonAnywhere garbles accented names):
 
 ```powershell
-Compress-Archive -Path C:\Users\z0040c9z\workspace\HOUSKI-web-content\horoweb_clanky\horoweb_clanky -DestinationPath $HOME\horoweb_clanky.zip -Force
+tar -czf $HOME\horoweb_clanky.tgz -C C:\Users\z0040c9z\workspace\HOUSKI-web-content\horoweb_clanky horoweb_clanky
 ```
 
-PythonAnywhere: Files tab -> upload `horoweb_clanky.zip` to `/home/<user>/`
+PythonAnywhere: Files tab -> upload `horoweb_clanky.tgz` to `/home/<user>/`
 (upload limit applies; for larger archives split it or use `git`/`scp` from a
 paid account). Then in Bash:
 
 ```bash
-cd ~ && mkdir -p horoweb_clanky && unzip -q horoweb_clanky.zip -d horoweb_clanky
+cd ~ && rm -rf horoweb_clanky && mkdir horoweb_clanky && tar -xzf horoweb_clanky.tgz -C horoweb_clanky
 ls horoweb_clanky            # check if there is one more nested horoweb_clanky/ level
 ```
 
@@ -75,7 +76,7 @@ Requires user `brouk` to exist (`--author <username>` to override).
 ## 7. Cleanup / rollback
 
 ```bash
-rm -rf ~/horoweb_clanky ~/horoweb_clanky.zip
+rm -rf ~/horoweb_clanky ~/horoweb_clanky.tgz
 ```
 
 Rollback: restore `~/db.sqlite3.bak_<date>` to `db.sqlite3` and extract
