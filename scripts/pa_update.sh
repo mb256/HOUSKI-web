@@ -49,8 +49,8 @@ python manage.py migrate --noinput
 echo "==> Collecting static files"
 python manage.py collectstatic --noinput
 
-echo "==> Ensuring default superuser exists"
-python manage.py create_default_superuser
+#echo "==> Ensuring default superuser exists"
+#python manage.py create_default_superuser
 
 echo "==> Seeding article categories"
 python manage.py seed_categories
