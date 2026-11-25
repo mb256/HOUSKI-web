@@ -10,3 +10,4 @@ media/
 db.sqlite3
 *.log
 *.sqlite3
+local_notes_credentials.md
