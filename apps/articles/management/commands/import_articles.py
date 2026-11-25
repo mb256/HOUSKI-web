@@ -1,6 +1,7 @@
 import csv
 import html
 import re
+import unicodedata
 from datetime import datetime, time
 from pathlib import Path
 
@@ -68,6 +69,19 @@ def to_aware(value):
     return timezone.make_aware(naive)
 
 
+def resolve_file(folder, src):
+    """folder/src, tolerating Unicode normalization (NFC/NFD) differences
+    between the HTML and the file name on disk (zip/unzip may change them)."""
+    path = folder / src
+    if path.is_file():
+        return path
+    wanted = unicodedata.normalize('NFC', src)
+    for candidate in folder.iterdir():
+        if unicodedata.normalize('NFC', candidate.name) == wanted and candidate.is_file():
+            return candidate
+    raise FileNotFoundError(path)
+
+
 class Command(BaseCommand):
     help = (
         'Imports articles from <root>/<folder>/index.html (images next to it). '
@@ -116,8 +130,7 @@ class Command(BaseCommand):
         for kind, content in blocks:
             if kind == 'images':
                 for src, _caption in content:
-                    if not (folder / src).is_file():
-                        raise FileNotFoundError(folder / src)
+                    resolve_file(folder, src)
         if dry_run:
             return 'created'
 
@@ -133,8 +146,8 @@ class Command(BaseCommand):
                         continue
                     for src, caption in content:
                         if src not in urls:
-                            urls[src] = self.store(folder / src, created_files, stored_files)
-                        if (folder / src).suffix.lower() in IMAGE_EXTENSIONS:
+                            urls[src] = self.store(resolve_file(folder, src), created_files, stored_files)
+                        if Path(src).suffix.lower() in IMAGE_EXTENSIONS:
                             parts.append(f'<p><img src="{urls[src]}" alt="image"></p>')
                         else:
                             parts.append(f'<p><a href="{urls[src]}">{Path(src).name}</a></p>')
