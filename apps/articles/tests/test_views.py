@@ -42,6 +42,17 @@ def test_author_shown_only_when_show_author(client, author, show_author):
 
 
 @pytest.mark.django_db
+def test_category_accepts_custom_slug_via_admin(client):
+    admin = User.objects.create_superuser('adm', '', 'Pass123!')
+    admin.must_change_password = False
+    admin.save()
+    client.force_login(admin)
+    response = client.post(reverse('admin:articles_category_add'), {'name': 'Cyklistika', 'slug': 'cyklistika'})
+    assert response.status_code == 302
+    assert Category.objects.filter(slug='cyklistika').exists()
+
+
+@pytest.mark.django_db
 def test_anonymous_user_cannot_create_article(client):
     response = client.get(reverse('articles:create'))
     assert response.status_code == 302
