@@ -33,6 +33,7 @@ class Category(models.Model):
 class Article(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
                                null=True, verbose_name='autor')
+    show_author = models.BooleanField('zobrazit autora', default=True)
     headline = models.CharField('nadpis', max_length=300)
     text = SummernoteTextField('text')
     categories = models.ManyToManyField(Category, blank=True, verbose_name='kategorie')
