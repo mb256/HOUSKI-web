@@ -36,7 +36,7 @@ tar czf ~/media.bak_$(date +%F).tgz media
 Local (PowerShell) - zip the folder:
 
 ```powershell
-Compress-Archive -Path C:\Users\z0040c9z\workspace\HOUSKI-web-content\horoweb_clanky\horoweb_clanky -DestinationPath $HOME\horoweb_clanky.zip
+Compress-Archive -Path C:\Users\z0040c9z\workspace\HOUSKI-web-content\horoweb_clanky\horoweb_clanky -DestinationPath $HOME\horoweb_clanky.zip -Force
 ```
 
 PythonAnywhere: Files tab -> upload `horoweb_clanky.zip` to `/home/<user>/`
